@@ -13,7 +13,7 @@ documents and get answers grounded in the source text.*
 |---|-------|--------|
 | 1 | Charger le document, extraire le texte | ✅ fait |
 | 2 | Découper en passages (chunking) | ✅ fait |
-| 3 | Vectoriser les passages (embeddings) + indexer | ⬜ à venir |
+| 3 | Vectoriser les passages (embeddings) + indexer | ✅ fait |
 | 4 | Vectoriser la question | ⬜ à venir |
 | 5 | Recherche des passages pertinents (retrieval) | ⬜ à venir |
 | 6 | Génération de la réponse ancrée | ⬜ à venir |
@@ -36,6 +36,9 @@ python src/step1_load.py data/sample_memo.pdf
 
 # 3. Découper le texte en passages (chunking)
 python src/step2_chunk.py data/sample_memo.pdf
+
+# 4. Vectoriser les passages et les indexer dans Chroma
+python src/step3_index.py data/sample_memo.pdf
 ```
 
 Remplace `data/sample_memo.pdf` par tes propres documents financiers
@@ -59,6 +62,25 @@ context; the overlap prevents an idea straddling two passages from
 becoming invisible to search. Each chunk keeps its source page number
 for later citation.*
 
+### Embeddings + indexation (étape 3)
+
+Les chunks sont vectorisés avec le modèle local **all-MiniLM-L6-v2**
+(format ONNX, fonction d'embedding par défaut de Chroma) : gratuit,
+tourne offline, pas de clé API à gérer. Le modèle (~80 Mo) est
+téléchargé automatiquement au premier lancement — une connexion
+internet est nécessaire cette première fois seulement. L'index est
+persisté sur disque dans `chroma_db/` (créé automatiquement, ignoré par
+Git) ; relancer le script sur le même document met à jour les chunks
+existants (upsert) au lieu de les dupliquer.
+
+*Chunks are embedded with the local **all-MiniLM-L6-v2** model (ONNX
+format, Chroma's default embedding function): free, runs offline, no
+API key needed. The model (~80 MB) is downloaded automatically on
+first run — internet access is only needed that first time. The index
+is persisted to disk under `chroma_db/` (auto-created, git-ignored);
+re-running the script on the same document upserts existing chunks
+instead of duplicating them.*
+
 ## Structure
 
 ```
@@ -68,7 +90,8 @@ financial-docs-rag/
 │   └── sample_memo.pdf      # mémo d'investissement fictif
 ├── src/
 │   ├── step1_load.py        # étape 1 : chargement + extraction
-│   └── step2_chunk.py       # étape 2 : découpage en passages (chunking)
+│   ├── step2_chunk.py       # étape 2 : découpage en passages (chunking)
+│   └── step3_index.py       # étape 3 : embeddings + indexation Chroma
 ├── requirements.txt
 └── README.md
 ```
